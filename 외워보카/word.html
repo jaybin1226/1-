@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>고1 10월 모의고사 영어 단어 테스트</title>
+    <link rel="apple-touch-icon" sizes="57x57" href="/apple-icon-57x57.png">
+<link rel="apple-touch-icon" sizes="60x60" href="/apple-icon-60x60.png">
+<link rel="apple-touch-icon" sizes="72x72" href="/apple-icon-72x72.png">
+<link rel="apple-touch-icon" sizes="76x76" href="/apple-icon-76x76.png">
+<link rel="apple-touch-icon" sizes="114x114" href="/apple-icon-114x114.png">
+<link rel="apple-touch-icon" sizes="120x120" href="/apple-icon-120x120.png">
+<link rel="apple-touch-icon" sizes="144x144" href="/apple-icon-144x144.png">
+<link rel="apple-touch-icon" sizes="152x152" href="/apple-icon-152x152.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-icon-180x180.png">
+<link rel="icon" type="image/png" sizes="192x192"  href="/android-icon-192x192.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="msapplication-TileColor" content="#ffffff">
+<meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
+<meta name="theme-color" content="#ffffff">
+<script src="https://cdn.tailwindcss.com"></script>
+    
+<style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Noto+Sans+KR:wght@100..900&display=swap');
+        body {
+            font-family: 'Noto Sans KR', 'Inter', sans-serif;
+            /* 배경색을 흰색 계열 (아주 연한 회색)으로 변경 */
+            background-color: #f9fafb; 
+        }
+        /* 애니메이션 추가 */
+        @keyframes pulse-success {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .animate-pulse-success {
+            animation: pulse-success 0.5s infinite;
+        }
+        
+        /* 버튼 공통 스타일을 위한 Tailwind 색상 변수 설정 */
+        .btn-primary {
+            background-color: #0045f3; /* 요청된 파란색 */
+        }
+        .btn-primary:hover {
+            background-color: #0037c2; /* 요청된 파란색의 약간 어두운 호버 색상 */
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 sm:p-6">
+
+    
+<script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // =================================================================================
+        // [사용자 설정 영역] - 이 변수 값만 수정하여 로고를 변경하세요.
+        // 여기에 로고 이미지 URL (http/https로 시작) 또는 Base64 인코딩된 SVG 데이터를 넣으세요.
+        // data:image/svg+xml;base64,... 형태의 SVG도 가능합니다.
+        // =================================================================================
+        const STATIC_LOGO_SOURCE = "https://i.ifh.cc/J5Gw80.png";
+        const LOGO_FALLBACK_URL = "https://placehold.co/320x80/6b7280/ffffff?text=Default+Logo"; // 로딩 실패 시 표시할 기본 로고
+        // =================================================================================
+        
+        // Global variables provided by the environment
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        
+        // Global Firebase instances
+        window.db = null;
+        window.auth = null;
+        window.userId = null;
+        
+        function updateLogoImage(url) {
+            const logoImg = document.getElementById('app-logo');
+            logoImg.src = url;
+            logoImg.onerror = () => {
+                // Fallback to default placeholder if the provided URL fails to load
+                logoImg.src = LOGO_FALLBACK_URL;
+                if (url !== LOGO_FALLBACK_URL) {
+                     console.warn(`Failed to load custom logo from: ${url}. Using default placeholder.`);
+                }
+            };
+        }
+
+        if (Object.keys(firebaseConfig).length > 0) {
+            try {
+                const app = initializeApp(firebaseConfig);
+                window.db = getFirestore(app);
+                window.auth = getAuth(app);
+                // setLogLevel('debug'); // Uncomment for debugging
+
+                // Sign in using custom token or anonymously
+                (async () => {
+                    try {
+                        if (initialAuthToken) {
+                            await signInWithCustomToken(window.auth, initialAuthToken);
+                        } else {
+                            await signInAnonymously(window.auth);
+                        }
+                        window.userId = window.auth.currentUser?.uid || crypto.randomUUID();
+                        document.getElementById('quiz-app').style.display = 'block';
+                        
+                        updateLogoImage(STATIC_LOGO_SOURCE); // **정적 로고 설정**
+
+                    } catch (error) {
+                        console.error("Firebase Auth failed:", error);
+                        alertBox.show('로그인 실패: 테스트를 시작할 수 없습니다. 콘솔을 확인하세요.');
+                    }
+                })();
+
+            } catch (error) {
+                console.error("Firebase Initialization failed:", error);
+                alertBox.show('파이어베이스 초기화 실패: 테스트를 시작할 수 없습니다.');
+            }
+        } else {
+            console.warn("Firebase config not found. Running application without persistence/auth.");
+            // Proceed without Firebase (fallback for local testing)
+            window.userId = crypto.randomUUID();
+            document.getElementById('quiz-app').style.display = 'block';
+            updateLogoImage(STATIC_LOGO_SOURCE); // **정적 로고 설정**
+        }
+    </script>
+
+    
+
+<div id="quiz-app" class="w-full max-w-lg bg-white rounded-xl p-6 md:p-10 border border-gray-100 shadow-xl" style="display: none;">
+        
+        
+
+<div id="logo-area" class="mb-8 p-0 flex justify-center">
+            <img id="app-logo" 
+                 src="" 
+                 alt="고1 모의고사 영어 단어 테스트 로고" 
+                 class="h-20 w-auto max-w-xs rounded-lg object-contain">
+        </div>
+
+        
+<div id="settings-area" class="space-y-4 mb-8 p-4 bg-blue-50 rounded-lg shadow-inner">
+            
+            
+
+<div class="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
+                
+<div class="w-full sm:w-1/2">
+                    <label for="quizMode" class="block text-base font-bold text-gray-700 mb-1">테스트 모드 선택</label>
+                    <div class="flex bg-white rounded-xl p-1 border border-blue-300 shadow-lg">
+                        
+
+<button id="mode-subjective" data-mode="subjective" class="flex-1 py-3 px-4 text-base font-semibold rounded-lg transition-all duration-200 bg-blue-800 text-white shadow-md">
+                            주관식 (영→한)
+                        </button>
+                        <button id="mode-multiple" data-mode="multiple" class="flex-1 py-3 px-4 text-base font-medium text-gray-600 rounded-lg transition-all duration-200 hover:bg-blue-100">
+                            객관식 (한→영)
+                        </button>
+                    </div>
+                </div>
+
+                
+<div class="w-full sm:w-1/2 sm:ml-4">
+                    <label for="quizDifficulty" class="block text-base font-bold text-gray-700 mb-1">난이도 선택</label>
+                    <select id="quiz-difficulty" class="w-full mt-1 p-3 border-2 border-blue-300 rounded-xl shadow-inner focus:ring-blue-700 focus:border-blue-700 transition duration-150 ease-in-out text-base">
+                        <option value="easy">쉬움</option>
+                        <option value="normal" selected>보통</option>
+                        <option value="hard">어려움</option>
+                    </select>
+                </div>
+            </div>
+            
+
+<button id="start-quiz-btn" class="w-full py-4 text-lg btn-primary text-white font-bold rounded-xl transition duration-200 shadow-xl mt-4">
+                테스트 시작
+            </button>
+        </div>
+
+        
+<div id="quiz-area" class="hidden">
+            
+<div class="flex justify-between items-center mb-4">
+                <p id="question-counter" class="text-lg font-bold text-blue-900">1 / 20</p>
+                
+
+<button id="go-to-home-btn-quiz" class="py-2 px-4 text-sm btn-primary text-white font-medium rounded-lg transition duration-200 shadow-md">
+                    Home
+                </button>
+            </div>
+
+            
+<div class="bg-white border border-gray-200 rounded-xl p-6 shadow-lg">
+                <p id="question-text" class="text-2xl md:text-3xl font-bold text-center text-gray-800 min-h-20 flex items-center justify-center">
+                    
+</p>
+            </div>
+
+            <div class="mt-6">
+                
+<div id="subjective-input" class="hidden">
+                    <label for="answer-input" class="block text-sm font-medium text-gray-700 mb-2">정답 입력 (한글 뜻)</label>
+                    <input type="text" id="answer-input" class="w-full p-3 border-2 border-blue-300 rounded-lg focus:ring-blue-700 focus:border-blue-700 transition duration-150" placeholder="여기에 정답을 입력하세요" autocomplete="off">
+                    
+                    <div class="flex space-x-3 mt-4">
+                        
+
+<button id="submit-btn-subjective" class="flex-1 py-3 btn-primary text-white font-bold rounded-lg transition duration-200 shadow-md">
+                            제출하기
+                        </button>
+                        <button id="pass-btn-subjective" class="flex-1 py-3 bg-gray-500 text-white font-bold rounded-lg hover:bg-gray-600 transition duration-200 shadow-md">
+                            PASS
+                        </button>
+                    </div>
+                </div>
+
+                
+<div id="multiple-choice-options" class="hidden space-y-3">
+                    
+</div>
+                
+                
+<button id="pass-btn-multiple" class="w-full mt-4 py-3 bg-gray-500 text-white font-bold rounded-lg hover:bg-gray-600 transition duration-200 shadow-md hidden">
+                    PASS
+</button>
+            </div>
+
+            
+<div id="feedback-area" class="mt-6 p-4 rounded-lg hidden transition duration-300">
+                <p id="feedback-message" class="font-bold text-lg"></p>
+                <p id="correct-answer-display" class="mt-2 text-base"></p>
+                
+                
+
+<button id="next-question-btn" class="w-full mt-4 py-3 btn-primary text-white font-bold rounded-lg transition duration-200 shadow-md">
+                    다음 문제로
+                </button>
+            </div>
+        </div>
+
+        
+<div id="result-area" class="hidden text-center p-6 bg-white rounded-xl shadow-lg border-2 border-blue-300">
+            <h2 class="text-3xl font-extrabold text-blue-800 mb-4">테스트 종료!</h2>
+            <p class="text-xl text-gray-700 mb-6">최종 점수: <span id="final-score" class="font-bold text-4xl text-blue-600"></span> / 20</p>
+
+            <div id="failed-words-summary" class="bg-red-50 p-4 rounded-lg mb-6 hidden">
+                <p class="font-bold text-red-700 mb-2">틀린 단어 목록</p>
+                <ul id="failed-words-list" class="text-sm text-gray-700 space-y-1 text-left">
+                    
+</ul>
+            </div>
+
+            <button id="restart-failed-btn" class="w-full py-3 bg-red-700 text-white font-bold rounded-lg hover:bg-red-800 transition duration-200 shadow-md mb-3 hidden">
+                틀린 단어만 다시 풀기
+            </button>
+            
+
+<button id="go-to-settings-btn" class="w-full py-3 btn-primary text-white font-bold rounded-lg transition duration-200 shadow-md">
+                Home
+            </button>
+        </div>
+    </div>
+
+    
+<div id="alert-overlay" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm">
+            <h3 class="text-xl font-bold text-gray-800 mb-3" id="alert-title">알림</h3>
+            <p class="text-gray-600 mb-6" id="alert-message"></p>
+            
+
+<button id="alert-ok-btn" class="w-full py-2 btn-primary text-white font-bold rounded-lg">확인</button>
+        </div>
+    </div>
+
+    <script>
+        // Custom Alert/Confirmation Box Logic
+        const alertBox = {
+            overlay: document.getElementById('alert-overlay'),
+            title: document.getElementById('alert-title'),
+            message: document.getElementById('alert-message'),
+            okBtn: document.getElementById('alert-ok-btn'),
+
+            show: function(msg, title = '알림') {
+                this.title.textContent = title;
+                this.message.textContent = msg;
+                this.overlay.classList.remove('hidden');
+                this.overlay.classList.add('flex');
+                this.okBtn.onclick = () => this.hide();
+            },
+            hide: function() {
+                this.overlay.classList.add('hidden');
+                this.overlay.classList.remove('flex');
+            }
+        };
+
+
+        // 1. Vocabulary Data (Extracted from 2024 High School 1st Grade October Mock Exam Passages + extensive additions)
+        // ** Total 150 words ** (50 for each difficulty level)
+        const vocabulary = [
+            // =================================================================================================
+            // EASY WORDS (총 50개 - 기본 단어 및 핵심 동사/명사 위주)
+            // =================================================================================================
+            { english: "legal", korean: ["법적인", "합법적인"], difficulty: "easy" },
+            { english: "room", korean: ["여지", "공간", "방"], difficulty: "easy" },
+            { english: "packed", korean: ["빽빽한", "꽉 들어찬"], difficulty: "easy" },
+            { english: "ensure", korean: ["보장하다", "확실하게 하다"], difficulty: "easy" },
+            { english: "immediate", korean: ["즉각적인", "당면한"], difficulty: "easy" },
+            { english: "therapy", korean: ["치료", "요법"], difficulty: "easy" },
+            { english: "compare", korean: ["비교하다", "견주다"], difficulty: "easy" },
+            { english: "stare", korean: ["응시하다", "뚫어지게 보다"], difficulty: "easy" },
+            { english: "clearly", korean: ["분명히", "명확하게"], difficulty: "easy" },
+            { english: "isolated", korean: ["고립된", "격리된"], difficulty: "easy" },
+            { english: "scold", korean: ["꾸짖다", "야단치다"], difficulty: "easy" },
+            { english: "cheerful", korean: ["명랑한", "쾌활한"], difficulty: "easy" },
+            { english: "public", korean: ["공공의", "대중의"], difficulty: "easy" },
+            { english: "private", korean: ["개인의", "사적인"], difficulty: "easy" },
+            { english: "limit", korean: ["제한하다", "한계"], difficulty: "easy" },
+            { english: "focus", korean: ["초점", "집중하다"], difficulty: "easy" },
+            { english: "mention", korean: ["언급하다", "말하다"], difficulty: "easy" },
+            { english: "habit", korean: ["습관", "버릇"], difficulty: "easy" },
+            { english: "value", korean: ["가치", "평가하다"], difficulty: "easy" },
+            { english: "view", korean: ["관점", "시야", "보다"], difficulty: "easy" },
+            { english: "create", korean: ["만들다", "창조하다"], difficulty: "easy" },
+            { english: "solve", korean: ["해결하다", "풀다"], difficulty: "easy" },
+            { english: "exist", korean: ["존재하다", "실재하다"], difficulty: "easy" },
+            { english: "nature", korean: ["자연", "본질", "성질"], difficulty: "easy" },
+            { english: "affect", korean: ["영향을 미치다", "감동시키다"], difficulty: "easy" },
+            { english: "source", korean: ["근원", "원천"], difficulty: "easy" },
+            { english: "define", korean: ["정의하다", "규정하다"], difficulty: "easy" },
+            { english: "provide", korean: ["제공하다", "주다"], difficulty: "easy" },
+            { english: "appear", korean: ["나타나다", "처럼 보이다"], difficulty: "easy" },
+            { english: "matter", korean: ["문제", "중요하다", "물질"], difficulty: "easy" },
+            { english: "depend", korean: ["의존하다", "달려있다"], difficulty: "easy" },
+            { english: "recognize", korean: ["인식하다", "알아보다"], difficulty: "easy" },
+            { english: "sense", korean: ["감각", "의미", "느끼다"], difficulty: "easy" },
+            { english: "share", korean: ["공유하다", "몫"], difficulty: "easy" },
+            { english: "spread", korean: ["퍼지다", "확산시키다"], difficulty: "easy" },
+            { english: "purpose", korean: ["목적", "의도"], difficulty: "easy" },
+            { english: "develop", korean: ["발전시키다", "개발하다"], difficulty: "easy" },
+            { english: "determine", korean: ["결정하다", "밝혀내다"], difficulty: "easy" },
+            { english: "prevent", korean: ["막다", "예방하다"], difficulty: "easy" },
+            { english: "region", korean: ["지역", "영역"], difficulty: "easy" },
+            { english: "require", korean: ["요구하다", "필요로 하다"], difficulty: "easy" },
+            { english: "support", korean: ["지지하다", "후원하다"], difficulty: "easy" },
+            { english: "suggest", korean: ["제안하다", "암시하다"], difficulty: "easy" },
+            { english: "treat", korean: ["다루다", "치료하다", "대접하다"], difficulty: "easy" },
+            { english: "observe", korean: ["관찰하다", "준수하다"], difficulty: "easy" },
+            { english: "distinguish", korean: ["구별하다", "식별하다"], difficulty: "easy" },
+            { english: "evidence", korean: ["증거", "흔적"], difficulty: "easy" },
+            { english: "involve", korean: ["수반하다", "관련시키다"], difficulty: "easy" },
+            { english: "approach", korean: ["접근하다", "접근법"], difficulty: "easy" },
+            { english: "conclude", korean: ["결론짓다", "끝내다"], difficulty: "easy" },
+
+            // =================================================================================================
+            // NORMAL WORDS (총 50개 - 핵심 단어, 빈출 형용사/부사/추상명사 위주)
+            // =================================================================================================
+            { english: "commitment", korean: ["전념", "헌신", "약속"], difficulty: "normal" },
+            { english: "obligation", korean: ["의무", "책임"], difficulty: "normal" },
+            { english: "eyewitness", korean: ["목격자"], difficulty: "normal" },
+            { english: "consistency", korean: ["일관성", "지속성"], difficulty: "normal" },
+            { english: "distribute", korean: ["분배하다", "나누어 주다"], difficulty: "normal" },
+            { english: "passive", korean: ["수동적인", "소극적인"], difficulty: "normal" },
+            { english: "transformation", korean: ["변화", "변신"], difficulty: "normal" },
+            { english: "impact", korean: ["효과", "영향", "충격"], difficulty: "normal" },
+            { english: "highlight", korean: ["강조하다", "부각시키다"], difficulty: "normal" },
+            { english: "pretend", korean: ["~인 체하다", "가장하다"], difficulty: "normal" },
+            { english: "indifference", korean: ["무관심", "냉담"], difficulty: "normal" },
+            { english: "pride", korean: ["자존심", "긍지", "자부심"], difficulty: "normal" },
+            { english: "authority", korean: ["권한", "당국", "권위"], difficulty: "normal" },
+            { english: "potential", korean: ["잠재력", "가능성"], difficulty: "normal" },
+            { english: "strategy", korean: ["전략", "계획"], difficulty: "normal" },
+            { english: "perspective", korean: ["관점", "시각"], difficulty: "normal" },
+            { english: "interpret", korean: ["해석하다", "이해하다"], difficulty: "normal" },
+            { english: "essential", korean: ["필수적인", "본질적인"], difficulty: "normal" },
+            { english: "crucial", korean: ["결정적인", "매우 중요한"], difficulty: "normal" },
+            { english: "acquire", korean: ["습득하다", "얻다"], difficulty: "normal" },
+            { english: "relevant", korean: ["관련된", "적절한"], difficulty: "normal" },
+            { english: "process", korean: ["과정", "절차"], difficulty: "normal" },
+            { english: "establish", korean: ["설립하다", "확립하다"], difficulty: "normal" },
+            { english: "function", korean: ["기능", "작동하다"], difficulty: "normal" },
+            { english: "structure", korean: ["구조", "구성"], difficulty: "normal" },
+            { english: "consequence", korean: ["결과", "중요성"], difficulty: "normal" },
+            { english: "temporary", korean: ["일시적인", "임시의"], difficulty: "normal" },
+            { english: "alternative", korean: ["대안", "양자택일의"], difficulty: "normal" },
+            { english: "capacity", korean: ["능력", "수용력"], difficulty: "normal" },
+            { english: "concept", korean: ["개념", "사상"], difficulty: "normal" },
+            { english: "dimension", korean: ["차원", "측면"], difficulty: "normal" },
+            { english: "diverse", korean: ["다양한", "가지각색의"], difficulty: "normal" },
+            { english: "generate", korean: ["만들어내다", "발생시키다"], difficulty: "normal" },
+            { english: "interaction", korean: ["상호 작용", "교류"], difficulty: "normal" },
+            { english: "justify", korean: ["정당화하다", "옳음을 증명하다"], difficulty: "normal" },
+            { english: "mutual", korean: ["상호적인", "공동의"], difficulty: "normal" },
+            { english: "perception", korean: ["인식", "지각"], difficulty: "normal" },
+            { english: "preference", korean: ["선호", "애호"], difficulty: "normal" },
+            { english: "prioritize", korean: ["우선순위를 매기다"], difficulty: "normal" },
+            { english: "resilient", korean: ["회복력 있는", "탄력 있는"], difficulty: "normal" },
+            { english: "restrict", korean: ["제한하다", "한정하다"], difficulty: "normal" },
+            { english: "significance", korean: ["중요성", "의미"], difficulty: "normal" },
+            { english: "specific", korean: ["특정한", "구체적인"], difficulty: "normal" },
+            { english: "subtle", korean: ["미묘한", "포착하기 어려운"], difficulty: "normal" },
+            { english: "tendency", korean: ["경향", "성향"], difficulty: "normal" },
+            { english: "withdraw", korean: ["철회하다", "인출하다"], difficulty: "normal" },
+            { english: "utilize", korean: ["활용하다", "이용하다"], difficulty: "normal" },
+            { english: "conduct", korean: ["수행하다", "실시하다", "행동"], difficulty: "normal" },
+            { english: "exposure", korean: ["노출", "접촉"], difficulty: "normal" },
+            { english: "mechanism", korean: ["메커니즘", "기구"], difficulty: "normal" },
+
+            // =================================================================================================
+            // HARD WORDS (총 50개 - 고난도, 지문 독해에 필수적인 단어 위주)
+            // =================================================================================================
+            { english: "undermine", korean: ["훼손시키다", "약화시키다"], difficulty: "hard" },
+            { english: "retrieve", korean: ["상기하다", "되찾다", "검색하다"], difficulty: "hard" },
+            { english: "procrastinator", korean: ["미루는 사람", "지연하는 사람"], difficulty: "hard" },
+            { english: "endurance", korean: ["인내력", "지구력"], difficulty: "hard" },
+            { english: "transmit", korean: ["전달하다", "전송하다"], difficulty: "hard" },
+            { english: "illusion", korean: ["착각", "오해", "환상"], difficulty: "hard" },
+            { english: "spectacle", korean: ["장관", "구경거리"], difficulty: "hard" },
+            { english: "mimic", korean: ["모방하다", "흉내 내다"], difficulty: "hard" },
+            { english: "eliminate", korean: ["제거하다", "없애다"], difficulty: "hard" },
+            { english: "scarcity", korean: ["부족", "희소성"], difficulty: "hard" },
+            { english: "inequity", korean: ["불평등", "불공평"], difficulty: "hard" },
+            { english: "evolutionary", korean: ["진화상의", "진화적인"], difficulty: "hard" },
+            { english: "manipulate", korean: ["조종하다", "다루다"], difficulty: "hard" },
+            { english: "exaggerate", korean: ["과장하다", "지나치게 말하다"], difficulty: "hard" },
+            { english: "sustain", korean: ["지속하다", "유지하다"], difficulty: "hard" },
+            { english: "paradigm", korean: ["패러다임", "모범", "사고의 틀"], difficulty: "hard" },
+            { english: "implicit", korean: ["암묵적인", "내포된"], difficulty: "hard" },
+            { english: "explicit", korean: ["명시적인", "노골적인"], difficulty: "hard" },
+            { english: "bias", korean: ["편견", "선입견"], difficulty: "hard" },
+            { english: "decline", korean: ["쇠퇴", "거절하다"], difficulty: "hard" },
+            { english: "conventional", korean: ["전통적인", "관습적인"], difficulty: "hard" },
+            { english: "sophisticated", korean: ["정교한", "세련된"], difficulty: "hard" },
+            { english: "vulnerable", korean: ["취약한", "상처받기 쉬운"], difficulty: "hard" },
+            { english: "interact", korean: ["상호작용하다", "소통하다"], difficulty: "hard" },
+            { english: "consensus", korean: ["의견 일치", "합의"], difficulty: "hard" },
+            { english: "ultimate", korean: ["궁극적인", "최종적인"], difficulty: "hard" },
+            { english: "prejudice", korean: ["편견", "선입관"], difficulty: "hard" },
+            { english: "compel", korean: ["강요하다", "억지로 시키다"], difficulty: "hard" },
+            { english: "commence", korean: ["시작하다", "착수하다"], difficulty: "hard" },
+            { english: "diligent", korean: ["부지런한", "성실한"], difficulty: "hard" },
+            { english: "expedite", korean: ["촉진하다", "신속히 처리하다"], difficulty: "hard" },
+            { english: "fluctuate", korean: ["변동하다", "오르내리다"], difficulty: "hard" },
+            { english: "hinder", korean: ["방해하다", "저해하다"], difficulty: "hard" },
+            { english: "inevitable", korean: ["피할 수 없는", "필연적인"], difficulty: "hard" },
+            { english: "integrate", korean: ["통합하다", "합치다"], difficulty: "hard" },
+            { english: "legacy", korean: ["유산", "잔재"], difficulty: "hard" },
+            { english: "mediate", korean: ["중재하다", "조정하다"], difficulty: "hard" },
+            { english: "novice", korean: ["초심자", "풋내기"], difficulty: "hard" },
+            { english: "obsolete", korean: ["시대에 뒤떨어진", "구식의"], difficulty: "hard" },
+            { english: "precede", korean: ["선행하다", "앞서다"], difficulty: "hard" },
+            { english: "profound", korean: ["심오한", "깊은"], difficulty: "hard" },
+            { english: "redundant", korean: ["장황한", "불필요한"], difficulty: "hard" },
+            { english: "reinforce", korean: ["강화하다", "보강하다"], difficulty: "hard" },
+            { english: "speculate", korean: ["추측하다", "투기하다"], difficulty: "hard" },
+            { english: "stimulate", korean: ["자극하다", "고무하다"], difficulty: "hard" },
+            { english: "transient", korean: ["일시적인", "덧없는"], difficulty: "hard" },
+            { english: "unprecedented", korean: ["전례 없는", "유례없는"], difficulty: "hard" },
+            { english: "validate", korean: ["입증하다", "정당성을 확인하다"], difficulty: "hard" },
+            { english: "versatile", korean: ["다재다능한", "다용도의"], difficulty: "hard" },
+            { english: "widespread", korean: ["널리 퍼진", "광범위한"], difficulty: "hard"}
+        ];
+
+        // 2. Global State Variables
+        let currentQuizList = [];
+        let failedWords = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let currentMode = 'subjective'; // 'subjective' or 'multiple'
+        let currentDifficulty = 'normal'; // 'easy', 'normal', or 'hard'
+        const TOTAL_QUESTIONS = 20;
+
+        // 3. DOM Elements
+        const settingsArea = document.getElementById('settings-area');
+        const quizArea = document.getElementById('quiz-area');
+        const resultArea = document.getElementById('result-area');
+
+        const modeSubjectiveBtn = document.getElementById('mode-subjective');
+        const modeMultipleBtn = document.getElementById('mode-multiple');
+        const difficultySelect = document.getElementById('quiz-difficulty');
+        const startQuizBtn = document.getElementById('start-quiz-btn');
+
+        const goToHomeBtnQuiz = document.getElementById('go-to-home-btn-quiz'); // 퀴즈 중 홈 버튼
+        
+        const questionCounter = document.getElementById('question-counter');
+        const questionText = document.getElementById('question-text');
+        const questionCard = questionText.closest('.bg-white'); // Get the question card container for manipulation
+
+        const subjectiveInputArea = document.getElementById('subjective-input');
+        const answerInput = document.getElementById('answer-input');
+        const submitBtnSubjective = document.getElementById('submit-btn-subjective');
+        const passBtnSubjective = document.getElementById('pass-btn-subjective');
+
+        const multipleChoiceOptions = document.getElementById('multiple-choice-options');
+        const passBtnMultiple = document.getElementById('pass-btn-multiple');
+
+        const feedbackArea = document.getElementById('feedback-area');
+        const feedbackMessage = document.getElementById('feedback-message');
+        const correctAnswerDisplay = document.getElementById('correct-answer-display');
+        const nextQuestionBtn = document.getElementById('next-question-btn');
+
+        const finalScoreDisplay = document.getElementById('final-score');
+        const failedWordsList = document.getElementById('failed-words-list');
+        const failedWordsSummary = document.getElementById('failed-words-summary');
+        const restartFailedBtn = document.getElementById('restart-failed-btn');
+        const goToSettingsBtn = document.getElementById('go-to-settings-btn');
+        
+        // --- Event Listeners Initialization ---
+        
+        // Settings events
+        modeSubjectiveBtn.addEventListener('click', () => setMode('subjective'));
+        modeMultipleBtn.addEventListener('click', () => setMode('multiple'));
+        startQuizBtn.addEventListener('click', startQuiz);
+        difficultySelect.addEventListener('change', (e) => currentDifficulty = e.target.value);
+        
+        // Quiz events
+        submitBtnSubjective.addEventListener('click', () => checkAnswer(answerInput.value));
+        passBtnSubjective.addEventListener('click', () => checkAnswer(null));
+        passBtnMultiple.addEventListener('click', () => checkAnswer(null));
+        nextQuestionBtn.addEventListener('click', nextQuestion);
+        goToHomeBtnQuiz.addEventListener('click', goToSettings);
+        
+        // Result events
+        restartFailedBtn.addEventListener('click', restartFailedQuiz);
+        goToSettingsBtn.addEventListener('click', goToSettings);
+
+        // Input field for subjective mode (allows Enter key submission)
+        answerInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !submitBtnSubjective.disabled) {
+                checkAnswer(this.value);
+            }
+        });
+        
+        // --- Core Functions ---
+
+        function setMode(mode) {
+            currentMode = mode;
+            // Mode buttons use bg-blue-800 for selected and hover:bg-blue-100 for unselected.
+            // Note: I will keep the mode buttons color scheme as it provides a good contrast (dark blue).
+            // Only primary action buttons use .btn-primary.
+            modeSubjectiveBtn.classList.remove('bg-blue-800', 'text-white', 'font-semibold');
+            modeSubjectiveBtn.classList.add('text-gray-600', 'font-medium', 'hover:bg-blue-100');
+            modeMultipleBtn.classList.remove('bg-blue-800', 'text-white', 'font-semibold');
+            modeMultipleBtn.classList.add('text-gray-600', 'font-medium', 'hover:bg-blue-100');
+
+            if (mode === 'subjective') {
+                modeSubjectiveBtn.classList.add('bg-blue-800', 'text-white', 'font-semibold');
+                modeSubjectiveBtn.classList.remove('text-gray-600', 'font-medium', 'hover:bg-blue-100');
+            } else {
+                modeMultipleBtn.classList.add('bg-blue-800', 'text-white', 'font-semibold');
+                modeMultipleBtn.classList.remove('text-gray-600', 'font-medium', 'hover:bg-blue-100');
+            }
+        }
+        
+        function getShuffledQuizList(difficulty, count) {
+            const filteredWords = vocabulary.filter(word => word.difficulty === difficulty);
+            
+            // Fisher-Yates shuffle algorithm
+            for (let i = filteredWords.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [filteredWords[i], filteredWords[j]] = [filteredWords[j], filteredWords[i]];
+            }
+            
+            return filteredWords.slice(0, count);
+        }
+        
+        function startQuiz() {
+            currentQuizList = getShuffledQuizList(currentDifficulty, TOTAL_QUESTIONS);
+            if (currentQuizList.length === 0) {
+                alertBox.show('선택한 난이도의 단어가 없습니다. (개발 오류)', '오류');
+                return;
+            }
+            
+            failedWords = [];
+            currentQuestionIndex = 0;
+            score = 0;
+            
+            // UI Transition
+            settingsArea.classList.add('hidden');
+            resultArea.classList.add('hidden');
+            quizArea.classList.remove('hidden');
+            
+            showQuestion();
+        }
+
+        function showQuestion() {
+            if (currentQuestionIndex >= currentQuizList.length) {
+                showResult();
+                return;
+            }
+
+            const word = currentQuizList[currentQuestionIndex];
+            
+            // UI Reset
+            feedbackArea.classList.add('hidden');
+            questionCard.classList.remove('border-red-500', 'border-green-500', 'animate-pulse-success');
+            
+            questionCounter.textContent = `${currentQuestionIndex + 1} / ${currentQuizList.length}`;
+            
+            if (currentMode === 'subjective') {
+                // English to Korean (Subjective)
+                questionText.textContent = word.english;
+                subjectiveInputArea.classList.remove('hidden');
+                multipleChoiceOptions.classList.add('hidden');
+                passBtnMultiple.classList.add('hidden');
+                
+                answerInput.value = '';
+                answerInput.focus();
+                submitBtnSubjective.disabled = false;
+                passBtnSubjective.disabled = false;
+                
+            } else {
+                // Korean to English (Multiple Choice)
+                const correctKoreanMeaning = word.korean[0]; // Use first meaning for the question
+                questionText.textContent = correctKoreanMeaning;
+                
+                subjectiveInputArea.classList.add('hidden');
+                multipleChoiceOptions.classList.remove('hidden');
+                passBtnMultiple.classList.remove('hidden');
+                
+                generateMultipleChoice(word);
+            }
+        }
+
+        function generateMultipleChoice(correctWord) {
+            multipleChoiceOptions.innerHTML = '';
+            
+            const allEnglishWords = vocabulary.filter(w => w.difficulty === currentDifficulty).map(w => w.english);
+            
+            // Get 3 random unique incorrect options
+            let incorrectOptions = [];
+            while (incorrectOptions.length < 3) {
+                const randomIndex = Math.floor(Math.random() * allEnglishWords.length);
+                const randomWord = allEnglishWords[randomIndex];
+                if (randomWord !== correctWord.english && !incorrectOptions.includes(randomWord)) {
+                    incorrectOptions.push(randomWord);
+                }
+            }
+
+            const options = [...incorrectOptions, correctWord.english];
+            
+            // Shuffle options
+            for (let i = options.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [options[i], options[j]] = [options[j], options[i]];
+            }
+            
+            options.forEach((optionText) => {
+                const button = document.createElement('button');
+                button.textContent = optionText;
+                button.classList.add(
+                    'w-full', 'py-3', 'px-4', 'border', 'border-gray-300', 'rounded-lg', 
+                    'text-lg', 'font-medium', 'text-gray-700', 'bg-white', 
+                    'hover:bg-blue-50', 'transition', 'duration-150', 'shadow-md',
+                    'text-left' // 왼쪽 정렬
+                );
+                button.dataset.answer = optionText;
+                button.onclick = () => checkAnswer(optionText, button);
+                multipleChoiceOptions.appendChild(button);
+            });
+            
+            // Enable Pass Button
+            passBtnMultiple.disabled = false;
+        }
+
+        function normalizeAnswer(answer) {
+            if (!answer) return '';
+            // Trim whitespace, convert to lowercase, remove common punctuation
+            return answer.trim().toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").replace(/\s{2,}/g," ");
+        }
+
+        function checkAnswer(userAnswer, buttonElement = null) {
+            const word = currentQuizList[currentQuestionIndex];
+            let isCorrect = false;
+
+            if (userAnswer !== null) {
+                const normalizedUserAnswer = normalizeAnswer(userAnswer);
+                
+                if (currentMode === 'subjective') {
+                    // Subjective check: check against all possible Korean meanings
+                    isCorrect = word.korean.some(correctAns => normalizeAnswer(correctAns) === normalizedUserAnswer);
+                } else {
+                    // Multiple Choice check
+                    isCorrect = (userAnswer === word.english);
+                }
+            } else {
+                // PASS case
+                isCorrect = false;
+            }
+
+            // Disable all interactive elements
+            submitBtnSubjective.disabled = true;
+            passBtnSubjective.disabled = true;
+            passBtnMultiple.disabled = true;
+            disableMultipleChoiceButtons();
+            
+            // UI Feedback
+            if (isCorrect) {
+                score++;
+                feedbackMessage.textContent = '정답입니다! 🎉';
+                feedbackMessage.classList.remove('text-red-700');
+                feedbackMessage.classList.add('text-green-700');
+                feedbackArea.classList.remove('bg-red-100');
+                feedbackArea.classList.add('bg-green-100');
+                questionCard.classList.add('border-green-500', 'animate-pulse-success');
+
+            } else {
+                // [FIX] 오답을 제출하거나 PASS를 선택했을 때 모두 failedWords에 추가합니다.
+                failedWords.push(word); 
+                
+                feedbackMessage.textContent = userAnswer === null ? 'PASS (정답을 확인하세요)' : '오답입니다. 😥';
+                feedbackMessage.classList.remove('text-green-700');
+                feedbackMessage.classList.add('text-red-700');
+                feedbackArea.classList.remove('bg-green-100');
+                feedbackArea.classList.add('bg-red-100');
+                questionCard.classList.add('border-red-500');
+            }
+
+            // Show correct answer
+            const allMeanings = word.korean.join(', ');
+            correctAnswerDisplay.innerHTML = 
+                currentMode === 'subjective' ? `**영단어:** ${word.english} &nbsp;|&nbsp; **정답(뜻):** ${allMeanings}` : 
+                                               `**한글 뜻:** ${word.korean[0]} &nbsp;|&nbsp; **정답(영단어):** ${word.english}`;
+            correctAnswerDisplay.classList.add('font-semibold');
+            
+            if (buttonElement) {
+                // Highlight choice buttons
+                document.querySelectorAll('#multiple-choice-options button').forEach(btn => {
+                    const isCorrectOption = btn.dataset.answer === word.english;
+                    
+                    btn.classList.remove('bg-white', 'hover:bg-blue-50');
+                    if (isCorrectOption) {
+                        // Highlight correct answer in green
+                        btn.classList.add('bg-green-500', 'text-white', 'border-green-700', 'shadow-xl');
+                    } else if (btn === buttonElement) {
+                        // Highlight user's incorrect choice in red
+                        btn.classList.add('bg-red-500', 'text-white', 'border-red-700', 'shadow-xl');
+                    } else {
+                        // Dim incorrect options not chosen
+                        btn.classList.add('bg-gray-200', 'text-gray-500');
+                    }
+                    btn.disabled = true;
+                });
+            }
+
+            feedbackArea.classList.remove('hidden');
+        }
+
+        function disableMultipleChoiceButtons() {
+            document.querySelectorAll('#multiple-choice-options button').forEach(btn => {
+                btn.disabled = true;
+            });
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            showQuestion();
+        }
+
+        function showResult() {
+            // UI Transition
+            quizArea.classList.add('hidden');
+            resultArea.classList.remove('hidden');
+            
+            finalScoreDisplay.textContent = score;
+            
+            // Show failed words list
+            failedWordsList.innerHTML = '';
+            if (failedWords.length > 0) {
+                const uniqueFailedWords = Array.from(new Set(failedWords.map(w => w.english)))
+                    .map(english => failedWords.find(w => w.english === english)); // Get unique word objects
+                
+                uniqueFailedWords.forEach(word => {
+                    const li = document.createElement('li');
+                    li.classList.add('p-2', 'bg-white', 'rounded-md', 'shadow-sm');
+                    li.innerHTML = `<span class="font-bold text-red-600">${word.english}</span>: ${word.korean.join(', ')}`;
+                    failedWordsList.appendChild(li);
+                });
+                
+                failedWordsSummary.classList.remove('hidden');
+                restartFailedBtn.classList.remove('hidden');
+            } else {
+                failedWordsSummary.classList.add('hidden');
+                restartFailedBtn.classList.add('hidden');
+                // 이 블록은 score가 20점일 때만 실행됩니다.
+                alertBox.show('20문제 모두 정답입니다! 축하합니다! 🎉', '완벽한 점수');
+            }
+        }
+        
+        function restartFailedQuiz() {
+            if (failedWords.length === 0) {
+                alertBox.show('틀린 단어가 없습니다!', '정보');
+                goToSettings();
+                return;
+            }
+            
+            // Use unique words from the last attempt's failed list
+            const uniqueFailedWords = Array.from(new Set(failedWords.map(w => w.english)))
+                    .map(english => failedWords.find(w => w.english === english));
+            
+            currentQuizList = uniqueFailedWords;
+            failedWords = []; // Reset failed words for the new attempt
+            currentQuestionIndex = 0;
+            score = 0;
+            
+            // UI Transition
+            resultArea.classList.add('hidden');
+            quizArea.classList.remove('hidden');
+            
+            showQuestion();
+        }
+
+        function goToSettings() {
+            // UI Transition
+            quizArea.classList.add('hidden');
+            resultArea.classList.add('hidden');
+            settingsArea.classList.remove('hidden');
+            // Ensure settings are displayed correctly
+            setMode(currentMode); // Re-apply mode visual state
+            difficultySelect.value = currentDifficulty; // Re-apply difficulty state
+        }
+        
+        // Initial setup on load (will be triggered after Firebase logic)
+        // Ensure initial UI state is correct
+        goToSettings(); 
+        
+    </script>
+</body>
+</html>
